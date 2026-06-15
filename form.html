@@ -1470,7 +1470,7 @@ form.addEventListener('submit', function(e) {
     formData.set('sketchFileName', document.getElementById('sketchFile').files[0].name);
     formData.set('sketchFileData', sketchBase64); // base64 编码的文件
   }
-  fetch('/.netlify/functions/submit-form', {
+  fetch('https://jiatianxia-mansion.netlify.app/.netlify/functions/submit-form', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams(formData).toString()
