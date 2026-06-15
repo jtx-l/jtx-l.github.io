@@ -1,0 +1,12 @@
+# 甲天下美墅 — Netlify 配置
+
+[build]
+  publish = "."
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "nft"
+
+# 表单提交通知（Netlify Forms 自动检测用）
+[[forms.notifications]]
+  emails = ["3463493281@qq.com"]
