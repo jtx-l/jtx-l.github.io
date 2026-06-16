@@ -1495,7 +1495,7 @@ form.addEventListener('submit', function(e) {
     formData.set('sketchFileData', sketchBase64);
   }
 
-  fetch('/.netlify/functions/submit-form', {
+  fetch('https://jiatianxia-mansion.netlify.app/.netlify/functions/submit-form', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams(formData).toString()
