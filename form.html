@@ -1281,16 +1281,40 @@ let sketchBase64 = '';
 function previewSketch(input) {
   const file = input.files[0];
   if (!file) return;
-  // Show preview
   document.getElementById('sketchName').textContent = file.name;
-  document.getElementById('sketchSize').textContent = formatSize(file.size);
+  document.getElementById('sketchSize').textContent = '处理中...';
   document.getElementById('sketchPreview').style.display = 'flex';
   document.querySelector('.upload-btn').style.display = 'none';
   document.querySelector('.upload-hint').style.display = 'none';
-  // Convert to base64
+
+  // 压缩图片后转 base64（避免请求体过大）
   const reader = new FileReader();
-  reader.onload = function() { sketchBase64 = reader.result; };
-  reader.readAsDataURL(file);
+  reader.onload = function() {
+    const img = new Image();
+    img.onload = function() {
+      const MAX_W = 1200, MAX_H = 1200;
+      let w = img.width, h = img.height;
+      if (w > MAX_W || h > MAX_H) {
+        if (w > h) { h = Math.round(h * MAX_W / w); w = MAX_W; }
+        else { w = Math.round(w * MAX_H / h); h = MAX_H; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      sketchBase64 = canvas.toDataURL('image/jpeg', 0.65);
+      document.getElementById('sketchSize').textContent = formatSize(Math.round(sketchBase64.length * 0.75));
+    };
+    img.src = reader.result;
+  };
+  if (file.type === 'application/pdf') {
+    // PDF直接传base64不做压缩
+    reader.onload = function() { sketchBase64 = reader.result; };
+    reader.readAsDataURL(file);
+    document.getElementById('sketchSize').textContent = formatSize(file.size);
+  } else {
+    reader.readAsDataURL(file);
+  }
 }
 
 function removeSketch() {
@@ -1471,39 +1495,30 @@ form.addEventListener('submit', function(e) {
     formData.set('sketchFileData', sketchBase64);
   }
 
-  // 同时尝试两个后端
-  Promise.any([
-    fetch('https://jiatianxia-mansion.netlify.app/.netlify/functions/submit-form', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams(formData).toString()
-    }).then(r => r.json()),
-    fetch('https://gitee.com/api/v5/repos/jtx888/jiatianxia/issues', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json;charset=UTF-8' },
-      body: JSON.stringify({
-        access_token: '8a933006677d45cf41e21dc25aaa9197',
-        title: '🏠 ' + (formData.get('customerName') || '客户') + ' - 建房需求',
-        body: [...formData.entries()].filter(([k,v]) => v && v !== '').map(([k,v]) => '- **' + k + '**：' + v).join('\n')
-      })
-    }).then(r => r.json())
-  ])
+  fetch('/.netlify/functions/submit-form', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams(formData).toString()
+  })
+  .then(r => r.json())
   .then(data => {
     submitBtn.innerHTML = originalText;
     submitBtn.disabled = false;
-    if (data.success || data.number) {
+    if (data.success) {
       openModal(html);
       showToast('✅ 需求提交成功！');
       updateProgress(); form.reset();
       document.querySelectorAll('.conditional-field,.yard-check-group input').forEach(el => { el.classList?.remove('show'); if(el.type==='checkbox'){el.checked=false;toggleYardFields();} });
       sectionCards.forEach(c => c.classList.remove('completed')); updateProgress();
-    } else { showToast('提交失败，请稍后重试', true); }
+    } else {
+      showToast('提交失败：' + (data.error || '请稍后重试'), true);
+      openModal(html); // 即使失败也显示汇总，方便截图
+    }
   })
   .catch(err => {
     console.error(err);
-    // 后端都失败时仍然显示汇总
     openModal(html);
-    showToast('⚠️ 网络不稳定，请截图保存需求信息');
+    showToast('⚠️ 网络异常，请截图保存需求信息');
     submitBtn.innerHTML = originalText;
     submitBtn.disabled = false;
   });
