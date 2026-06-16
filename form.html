@@ -1462,7 +1462,7 @@ form.addEventListener('submit', function(e) {
     html += '</div>';
   });
 
-  // Submit to Gitee Issues (国内可用)
+  // Submit to backend
   const formData = new FormData(form);
   formData.set('yardPosition', getYardPosition());
   formData.set('noWindowSides', getNoWindowSides());
@@ -1471,7 +1471,42 @@ form.addEventListener('submit', function(e) {
     formData.set('sketchFileData', sketchBase64);
   }
 
-  submitToGitee(formData, originalText, submitBtn, html);
+  // 同时尝试两个后端
+  Promise.any([
+    fetch('https://jiatianxia-mansion.netlify.app/.netlify/functions/submit-form', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams(formData).toString()
+    }).then(r => r.json()),
+    fetch('https://gitee.com/api/v5/repos/jtx888/jiatianxia/issues', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json;charset=UTF-8' },
+      body: JSON.stringify({
+        access_token: '8a933006677d45cf41e21dc25aaa9197',
+        title: '🏠 ' + (formData.get('customerName') || '客户') + ' - 建房需求',
+        body: [...formData.entries()].filter(([k,v]) => v && v !== '').map(([k,v]) => '- **' + k + '**：' + v).join('\n')
+      })
+    }).then(r => r.json())
+  ])
+  .then(data => {
+    submitBtn.innerHTML = originalText;
+    submitBtn.disabled = false;
+    if (data.success || data.number) {
+      openModal(html);
+      showToast('✅ 需求提交成功！');
+      updateProgress(); form.reset();
+      document.querySelectorAll('.conditional-field,.yard-check-group input').forEach(el => { el.classList?.remove('show'); if(el.type==='checkbox'){el.checked=false;toggleYardFields();} });
+      sectionCards.forEach(c => c.classList.remove('completed')); updateProgress();
+    } else { showToast('提交失败，请稍后重试', true); }
+  })
+  .catch(err => {
+    console.error(err);
+    // 后端都失败时仍然显示汇总
+    openModal(html);
+    showToast('⚠️ 网络不稳定，请截图保存需求信息');
+    submitBtn.innerHTML = originalText;
+    submitBtn.disabled = false;
+  });
 });
 
 // ---- Reset ----
@@ -1504,59 +1539,6 @@ updateProgress();
     document.body.style.overflow = 'hidden';
   }
 })();
-
-// ---- Gitee Issues 提交 (国内服务器) ----
-const GITEE_TOKEN = '4f83abd765411dc176cc2556c913446d';
-const GITEE_REPO = 'jtx888/jiatianxia';
-async function submitToGitee(formData, originalText, submitBtn, html) {
-  const labels = {
-    customerName:'客户姓名',customerPhone:'联系电话',buildLocation:'建筑地点',
-    plotWidth:'宅基地面宽',plotDepth:'宅基地进深',houseWidth:'房屋面宽',houseDepth:'房屋进深',floors:'建筑层数',
-    yardPosition:'院子位置',frontYardWidth:'前院面宽',frontYardDepth:'前院进深',backYardWidth:'后院面宽',backYardDepth:'后院进深',
-    eastYardWidth:'东侧院面宽',eastYardDepth:'东侧院进深',westYardWidth:'西侧院面宽',westYardDepth:'西侧院进深',
-    windowFrontHeight:'前南面窗高',windowBackHeight:'后北面窗高',windowEastHeight:'东面窗高',windowWestHeight:'西面窗高',noWindowSides:'不留窗面',
-    dirEast:'东面情况',dirSouth:'南面情况',dirWest:'西面情况',dirNorth:'北面情况',
-    style:'风格偏好',budget:'预算范围',startDate:'预计开工',specialReq:'特殊要求',sketchFileName:'平面草图'
-  };
-  let body = '## 甲天下美墅 · 客户建房需求\n\n';
-  let titleName = '客户';
-  for (const [k, v] of formData.entries()) {
-    if (v && v !== '' && labels[k]) {
-      body += '- **' + labels[k] + '**：' + v + '\n';
-      if (k === 'customerName') titleName = v;
-    }
-  }
-  body += '\n---\n*提交于 ' + new Date().toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'}) + '*';
-
-  try {
-    const resp = await fetch('https://gitee.com/api/v5/repos/' + GITEE_REPO + '/issues', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        access_token: GITEE_TOKEN,
-        title: '🏠 ' + titleName + ' - 建房需求',
-        body: body,
-        labels: '客户需求'
-      })
-    });
-    if (resp.ok) {
-      openModal(html);
-      showToast('✅ 需求提交成功！我们很快与您联系');
-      updateProgress();
-      form.reset();
-      document.querySelectorAll('.conditional-field').forEach(el => el.classList.remove('show'));
-      sectionCards.forEach(c => c.classList.remove('completed'));
-      document.querySelectorAll('.yard-check-group input[type="checkbox"]').forEach(cb => { cb.checked = false; toggleYardFields(); });
-      updateProgress();
-    } else {
-      throw new Error('API error');
-    }
-  } catch(err) {
-    showToast('提交失败，请稍后重试', true);
-  }
-  submitBtn.innerHTML = originalText;
-  submitBtn.disabled = false;
-}
 
 console.log('🏗  甲天下美墅 — 需求收集表 ready.');
 </script>
