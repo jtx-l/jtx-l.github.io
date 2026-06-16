@@ -1518,7 +1518,7 @@ form.addEventListener('submit', function(e) {
   .catch(err => {
     console.error(err);
     openModal(html);
-    showToast('⚠️ 网络异常，请截图保存需求信息');
+    showToast('⚠️ 提交服务器连接失败，请截图汇总信息发给设计师');
     submitBtn.innerHTML = originalText;
     submitBtn.disabled = false;
   });
@@ -1544,14 +1544,15 @@ document.addEventListener('keydown', function(e) {
 // ---- Initial progress ----
 updateProgress();
 
-// ---- WeChat browser detection ----
+// ---- WeChat browser hint (top banner, not blocking) ----
 (function() {
-  var ua = navigator.userAgent;
-  // 检测微信内置浏览器
-  if (/MicroMessenger/i.test(ua)) {
-    document.getElementById('wechatOverlay').classList.add('show');
-    // 隐藏正常内容，防止微信浏览器渲染问题
-    document.body.style.overflow = 'hidden';
+  if (/MicroMessenger/i.test(navigator.userAgent)) {
+    var banner = document.getElementById('wechatOverlay');
+    if (banner) {
+      banner.innerHTML = '<span style="font-size:1.5rem">📱</span><p style="color:#fff;font-size:0.85rem;line-height:1.6">微信内如遇问题<br>请点击右上角「<b>在浏览器中打开</b>」</p>';
+      banner.classList.add('show');
+      banner.style.cssText = 'display:flex;position:fixed;bottom:0;left:0;right:0;top:auto;z-index:99999;background:rgba(0,0,0,0.9);align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:18px 32px;gap:8px';
+    }
   }
 })();
 
