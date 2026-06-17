@@ -855,7 +855,7 @@ body::before {
 </div>
 
 <!-- ======== FORM ======== -->
-<form class="main-form" id="designForm" name="design-form" method="POST" netlify data-netlify="true" action="https://6a31380eb37e940f8951968b--jiatianxia-mansion.netlify.app/.netlify/functions/submit-form" novalidate>
+<form class="main-form" id="designForm" name="design-form" method="POST" netlify data-netlify="true" action="https://jiatianxia-mansion.netlify.app/.netlify/functions/submit-form" novalidate>
   <input type="hidden" name="form-name" value="design-form">
   <input type="hidden" name="bot-field">
 
@@ -1558,7 +1558,7 @@ form.addEventListener('submit', function(e) {
   }
 
   // 提交到 Netlify 代理函数
-  fetch('https://6a313200c2fd8bdb8483e8f1--jiatianxia-mansion.netlify.app/.netlify/functions/submit-form', {
+  fetch('https://jiatianxia-mansion.netlify.app/.netlify/functions/submit-form', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams(formData).toString()

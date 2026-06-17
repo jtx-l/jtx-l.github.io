@@ -34,7 +34,7 @@ function checkPwd(){var v=document.getElementById('pwd').value;if(v===PWD){docum
 
 function load(){
   document.getElementById('list').innerHTML='<div class=empty>加载中...</div>';
-  fetch('https://6a3157e8ed0f97497b06c3c5--jiatianxia-mansion.netlify.app/.netlify/functions/submit-form?key=jtx888')
+  fetch('https://jiatianxia-mansion.netlify.app/.netlify/functions/submit-form?key=jtx888')
   .then(function(r){return r.json()})
   .then(function(issues){
     if(!Array.isArray(issues)){document.getElementById('list').innerHTML='<div class=empty><p style=font-size:2.5rem>⚠️</p><p>加载失败</p><button class=btn onclick=load()>重试</button></div>';return}
