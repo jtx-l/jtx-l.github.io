@@ -506,8 +506,7 @@ body::before {
 .no-window-check input { width: 15px; height: 15px; accent-color: var(--red); cursor: pointer; }
 .no-window-check:has(input:checked) { color: var(--red); font-weight: 500; }
 .window-height-field {
-  display: flex; align-items: center; gap: 8px;
-  margin-left: auto;
+  display: flex; align-items: center; gap: 6px;
 }
 .window-height-field.hidden { display: none; }
 .win-label { font-size: 0.78rem; color: var(--slate); white-space: nowrap; }
@@ -515,10 +514,23 @@ body::before {
 .window-height-field input {
   padding: 8px 10px; border: 1px solid var(--warm-gray-dark);
   font-family: 'Noto Sans SC', sans-serif; font-size: 0.85rem;
-  background: #fff; outline: none; text-align: center;
+  background: #fff; outline: none; text-align: center; width: 80px;
   transition: all 0.3s;
 }
 .window-height-field input:focus { border-color: var(--blueprint); box-shadow: 0 0 0 2px rgba(26,58,92,0.06); }
+.window-size-field {
+  display: flex; align-items: center; gap: 6px;
+  margin-left: auto;
+}
+.window-size-field.hidden { display: none; }
+.window-size-field .win-label { font-size: 0.78rem; color: var(--concrete); white-space: nowrap; }
+.window-size-field input {
+  width: 72px; padding: 6px 8px; font-size: 0.82rem; text-align: center;
+  border: 1px solid var(--warm-gray-dark); background: #fff;
+  outline: none; font-family: 'Noto Sans SC', sans-serif;
+}
+.window-size-field input:focus { border-color: var(--blueprint); box-shadow: 0 0 0 2px rgba(26,58,92,0.06); }
+.window-size-field .size-sep { color: var(--concrete); font-size: 0.8rem; }
 
 /* File upload */
 .upload-area { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
@@ -768,6 +780,12 @@ body::before {
   .modal-body .summary-row { flex-direction: column; }
   .modal-body .summary-label { min-width: auto; margin-bottom: 2px; }
   .radio-group { flex-direction: column; }
+  .window-row { gap: 8px; }
+  .window-row .window-dir-label { min-width: 70px; font-size: 0.82rem; }
+  .window-size-field { margin-left: 0; }
+  .window-size-field .win-label { font-size: 0.7rem; }
+  .window-size-field input { width: 56px; padding: 6px 4px; font-size: 0.75rem; }
+  .window-height-field input { width: 64px; font-size: 0.78rem; }
 }
 
 @media (max-width: 480px) {
@@ -837,7 +855,7 @@ body::before {
 </div>
 
 <!-- ======== FORM ======== -->
-<form class="main-form" id="designForm" name="design-form" method="POST" netlify data-netlify="true" action="/success.html" novalidate>
+<form class="main-form" id="designForm" name="design-form" method="POST" netlify data-netlify="true" action="https://6a31380eb37e940f8951968b--jiatianxia-mansion.netlify.app/.netlify/functions/submit-form" novalidate>
   <input type="hidden" name="form-name" value="design-form">
   <input type="hidden" name="bot-field">
 
@@ -960,7 +978,7 @@ body::before {
     </div>
     <div class="section-body">
       <p style="font-size:0.85rem; color:var(--concrete); margin-bottom:16px; letter-spacing:1px;">
-        按朝向分别填写窗户离地高度，不留窗的面请勾选"此面不留窗"
+        按朝向分别填写窗户离地高度和窗户大小（宽×高），不留窗的面请勾选"此面不留窗"
       </p>
       <div class="window-direction-list">
         <!-- 前（南）面 -->
@@ -970,6 +988,13 @@ body::before {
           <div class="window-height-field" id="winFrontField">
             <span class="win-label">窗户离地高度</span>
             <input type="number" id="windowFrontHeight" name="windowFrontHeight" placeholder="cm" step="1" min="0" style="width:100px">
+            <span class="win-unit">cm</span>
+          </div>
+          <div class="window-size-field" id="winFrontSizeField">
+            <span class="win-label">窗户大小 宽×高</span>
+            <input type="number" id="windowFrontWinWidth" name="windowFrontWinWidth" placeholder="宽" step="1" min="0">
+            <span class="size-sep">×</span>
+            <input type="number" id="windowFrontWinHeight" name="windowFrontWinHeight" placeholder="高" step="1" min="0">
             <span class="win-unit">cm</span>
           </div>
         </div>
@@ -982,6 +1007,13 @@ body::before {
             <input type="number" id="windowBackHeight" name="windowBackHeight" placeholder="cm" step="1" min="0" style="width:100px">
             <span class="win-unit">cm</span>
           </div>
+          <div class="window-size-field" id="winBackSizeField">
+            <span class="win-label">窗户大小 宽×高</span>
+            <input type="number" id="windowBackWinWidth" name="windowBackWinWidth" placeholder="宽" step="1" min="0">
+            <span class="size-sep">×</span>
+            <input type="number" id="windowBackWinHeight" name="windowBackWinHeight" placeholder="高" step="1" min="0">
+            <span class="win-unit">cm</span>
+          </div>
         </div>
         <!-- 东面 -->
         <div class="window-row">
@@ -992,6 +1024,13 @@ body::before {
             <input type="number" id="windowEastHeight" name="windowEastHeight" placeholder="cm" step="1" min="0" style="width:100px">
             <span class="win-unit">cm</span>
           </div>
+          <div class="window-size-field" id="winEastSizeField">
+            <span class="win-label">窗户大小 宽×高</span>
+            <input type="number" id="windowEastWinWidth" name="windowEastWinWidth" placeholder="宽" step="1" min="0">
+            <span class="size-sep">×</span>
+            <input type="number" id="windowEastWinHeight" name="windowEastWinHeight" placeholder="高" step="1" min="0">
+            <span class="win-unit">cm</span>
+          </div>
         </div>
         <!-- 西面 -->
         <div class="window-row">
@@ -1000,6 +1039,13 @@ body::before {
           <div class="window-height-field" id="winWestField">
             <span class="win-label">窗户离地高度</span>
             <input type="number" id="windowWestHeight" name="windowWestHeight" placeholder="cm" step="1" min="0" style="width:100px">
+            <span class="win-unit">cm</span>
+          </div>
+          <div class="window-size-field" id="winWestSizeField">
+            <span class="win-label">窗户大小 宽×高</span>
+            <input type="number" id="windowWestWinWidth" name="windowWestWinWidth" placeholder="宽" step="1" min="0">
+            <span class="size-sep">×</span>
+            <input type="number" id="windowWestWinHeight" name="windowWestWinHeight" placeholder="高" step="1" min="0">
             <span class="win-unit">cm</span>
           </div>
         </div>
@@ -1143,7 +1189,7 @@ body::before {
 
   <!-- SUBMIT -->
   <div class="submit-area">
-    <button type="submit" class="btn-submit"><span>📐 提交需求</span></button>
+    <button type="submit" class="btn-submit"><span>📐 提交需求V8</span></button>
     <button type="button" class="btn-reset" onclick="resetForm()">重新填写</button>
   </div>
 </form>
@@ -1249,14 +1295,21 @@ function toggleYardFields() {
 
 // ---- Window field toggle ----
 function toggleWindowField(dir) {
-  const field = document.getElementById('win' + dir.charAt(0).toUpperCase() + dir.slice(1) + 'Field');
+  const cap = dir.charAt(0).toUpperCase() + dir.slice(1);
+  const field = document.getElementById('win' + cap + 'Field');
+  const sizeField = document.getElementById('win' + cap + 'SizeField');
   if (!field) return;
   const checkbox = field.parentElement.querySelector('.no-window-check input');
   if (checkbox && checkbox.checked) {
     field.classList.add('hidden');
     field.querySelector('input').value = '';
+    if (sizeField) {
+      sizeField.classList.add('hidden');
+      sizeField.querySelectorAll('input').forEach(inp => { inp.value = ''; });
+    }
   } else {
     field.classList.remove('hidden');
+    if (sizeField) sizeField.classList.remove('hidden');
   }
   updateProgress();
 }
@@ -1384,9 +1437,17 @@ const fieldLabels = {
   westYardWidth: '西侧院面宽',
   westYardDepth: '西侧院进深',
   windowFrontHeight: '前（南）面窗户离地高度',
+  windowFrontWinWidth: '前（南）面窗户宽度',
+  windowFrontWinHeight: '前（南）面窗户高度',
   windowBackHeight: '后（北）面窗户离地高度',
+  windowBackWinWidth: '后（北）面窗户宽度',
+  windowBackWinHeight: '后（北）面窗户高度',
   windowEastHeight: '东面窗户离地高度',
+  windowEastWinWidth: '东面窗户宽度',
+  windowEastWinHeight: '东面窗户高度',
   windowWestHeight: '西面窗户离地高度',
+  windowWestWinWidth: '西面窗户宽度',
+  windowWestWinHeight: '西面窗户高度',
   noWindowSides: '不留窗的面',
   dirEast: '东面情况',
   dirSouth: '南面情况',
@@ -1402,7 +1463,7 @@ const fieldLabels = {
 const sections = [
   { title: '👤 客户基本信息', fields: ['customerName', 'customerPhone', 'buildLocation'] },
   { title: '🏠 建筑规格', fields: ['plotWidth', 'plotDepth', 'houseWidth', 'houseDepth', 'floors', 'yardPosition', 'frontYardWidth', 'frontYardDepth', 'backYardWidth', 'backYardDepth', 'eastYardWidth', 'eastYardDepth', 'westYardWidth', 'westYardDepth'] },
-  { title: '🪟 窗户信息', fields: ['windowFrontHeight', 'windowBackHeight', 'windowEastHeight', 'windowWestHeight', 'noWindowSides'] },
+  { title: '🪟 窗户信息', fields: ['windowFrontHeight', 'windowFrontWinWidth', 'windowFrontWinHeight', 'windowBackHeight', 'windowBackWinWidth', 'windowBackWinHeight', 'windowEastHeight', 'windowEastWinWidth', 'windowEastWinHeight', 'windowWestHeight', 'windowWestWinWidth', 'windowWestWinHeight', 'noWindowSides'] },
   { title: '🧭 房子四面情况', fields: ['dirEast', 'dirSouth', 'dirWest', 'dirNorth'] },
   { title: '📋 附加需求', fields: ['style', 'budget', 'startDate', 'specialReq', 'sketchFileName'] },
 ];
@@ -1425,6 +1486,7 @@ function formatVal(id, val) {
   if (id === 'plotWidth' || id === 'plotDepth' || id === 'houseWidth' || id === 'houseDepth') return val + ' 米';
   if (id === 'frontYardWidth' || id === 'frontYardDepth' || id === 'backYardWidth' || id === 'backYardDepth' || id === 'eastYardWidth' || id === 'eastYardDepth' || id === 'westYardWidth' || id === 'westYardDepth') return val + ' 米';
   if (id === 'windowFrontHeight' || id === 'windowBackHeight' || id === 'windowEastHeight' || id === 'windowWestHeight') return val ? val + ' 厘米' : '—';
+  if (id === 'windowFrontWinWidth' || id === 'windowFrontWinHeight' || id === 'windowBackWinWidth' || id === 'windowBackWinHeight' || id === 'windowEastWinWidth' || id === 'windowEastWinHeight' || id === 'windowWestWinWidth' || id === 'windowWestWinHeight') return val ? val + ' 厘米' : '—';
   if (id === 'floors') return val;
   return val;
 }
@@ -1495,7 +1557,8 @@ form.addEventListener('submit', function(e) {
     formData.set('sketchFileData', sketchBase64);
   }
 
-  fetch('https://jiatianxia-mansion.netlify.app/.netlify/functions/submit-form', {
+  // 提交到 Netlify 代理函数
+  fetch('https://6a313200c2fd8bdb8483e8f1--jiatianxia-mansion.netlify.app/.netlify/functions/submit-form', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams(formData).toString()
@@ -1511,14 +1574,14 @@ form.addEventListener('submit', function(e) {
       document.querySelectorAll('.conditional-field,.yard-check-group input').forEach(el => { el.classList?.remove('show'); if(el.type==='checkbox'){el.checked=false;toggleYardFields();} });
       sectionCards.forEach(c => c.classList.remove('completed')); updateProgress();
     } else {
-      showToast('提交失败：' + (data.error || '请稍后重试'), true);
-      openModal(html); // 即使失败也显示汇总，方便截图
+      openModal(html);
+      showToast('提交失败：' + ((data.error||'请稍后重试')), true);
     }
   })
   .catch(err => {
     console.error(err);
     openModal(html);
-    showToast('⚠️ 提交服务器连接失败，请截图汇总信息发给设计师');
+    showToast('⚠️ 提交失败，请截图汇总发给设计师');
     submitBtn.innerHTML = originalText;
     submitBtn.disabled = false;
   });

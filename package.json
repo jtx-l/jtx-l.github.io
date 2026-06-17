@@ -1,0 +1,8 @@
+{
+  "dependencies": {
+    "@netlify/blobs": "^10.7.9",
+    "adm-zip": "^0.5.17",
+    "dxf-writer": "^1.18.4",
+    "qrcode": "^1.5.4"
+  }
+}
