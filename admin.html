@@ -28,29 +28,71 @@ body{font-family:'Noto Sans SC',sans-serif;background:#FAF8F5;min-height:100vh}
 <div id=main style=display:none><div class=hdr><h1>🏗 甲天下美墅 · 客户提交</h1><div><span id=cnt style=font-size:.75rem;opacity:.5></span><span onclick=location.reload() style=color:rgba(255,255,255,.4);font-size:.7rem;cursor:pointer;text-decoration:underline;margin-left:8px>退出</span></div></div><div id=list></div><div style=text-align:center;padding:20px;color:#ccc;font-size:.7rem>下拉刷新 · 点击卡片展开详情</div></div>
 <script>
 var PWD='jtx888';
+var API='https://jiatianxia-mansion.netlify.app/.netlify/functions/submit-form?key=jtx888';
 var LB={customerName:'客户姓名',customerPhone:'电话',buildLocation:'地址',houseWidth:'房屋面宽',houseDepth:'房屋进深',floors:'楼层',plotWidth:'宅基地面宽',plotDepth:'宅基地进深',yardPosition:'院子位置',frontYardWidth:'前院面宽',frontYardDepth:'前院进深',backYardWidth:'后院面宽',backYardDepth:'后院进深',eastYardWidth:'东侧院面宽',eastYardDepth:'东侧院进深',westYardWidth:'西侧院面宽',westYardDepth:'西侧院进深',windowFrontHeight:'前窗离地',windowFrontWinWidth:'前窗宽度',windowFrontWinHeight:'前窗高度',windowBackHeight:'后窗离地',windowBackWinWidth:'后窗宽度',windowBackWinHeight:'后窗高度',windowEastHeight:'东窗离地',windowEastWinWidth:'东窗宽度',windowEastWinHeight:'东窗高度',windowWestHeight:'西窗离地',windowWestWinWidth:'西窗宽度',windowWestWinHeight:'西窗高度',noWindowSides:'不留窗面',dirEast:'东面情况',dirSouth:'南面情况',dirWest:'西面情况',dirNorth:'北面情况',style:'风格',budget:'预算',startDate:'开工时间',specialReq:'特殊要求',sketchFileName:'平面草图'};
+
 document.getElementById('pwd').addEventListener('keydown',function(e){if(e.key==='Enter')checkPwd()});
-function checkPwd(){var v=document.getElementById('pwd').value;if(v===PWD){document.getElementById('loginScreen').style.display='none';document.getElementById('main').style.display='block';load()}else{document.getElementById('err').style.display='block';document.getElementById('pwd').value=''}}
+
+function checkPwd(){
+  var v=document.getElementById('pwd').value;
+  if(v===PWD){
+    document.getElementById('loginScreen').style.display='none';
+    document.getElementById('main').style.display='block';
+    load();
+  }else{
+    document.getElementById('err').style.display='block';
+    document.getElementById('pwd').value='';
+  }
+}
 
 function load(){
   document.getElementById('list').innerHTML='<div class=empty>加载中...</div>';
-  fetch('https://jiatianxia-mansion.netlify.app/.netlify/functions/submit-form?key=jtx888')
-  .then(function(r){return r.json()})
+  fetch(API)
+  .then(function(r){
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  })
   .then(function(issues){
-    if(!Array.isArray(issues)){document.getElementById('list').innerHTML='<div class=empty><p style=font-size:2.5rem>⚠️</p><p>加载失败</p><button class=btn onclick=load()>重试</button></div>';return}
+    if(!Array.isArray(issues)){
+      document.getElementById('list').innerHTML='<div class=empty><p style=font-size:2.5rem>⚠️</p><p>数据格式错误</p><button class=btn onclick=load()>重试</button></div>';
+      return;
+    }
     document.getElementById('cnt').textContent='共 '+issues.length+' 条';
-    if(!issues.length){document.getElementById('list').innerHTML='<div class=empty><p style=font-size:3rem>📭</p><p>暂无提交</p></div>';return}
+    if(!issues.length){
+      document.getElementById('list').innerHTML='<div class=empty><p style=font-size:3rem>📭</p><p>暂无客户提交</p><button class=btn onclick=load() style=margin-top:12px>刷新</button></div>';
+      return;
+    }
     var html='';
-    issues.forEach(function(issue){
+    issues.forEach(function(issue,i){
       var body=issue.body||'', lines=body.split('\n'), all=[], sum='';
-      lines.forEach(function(line){var m=line.match(/- \*\*(.+?)\*\*[：:](.+)/);if(m&&LB[m[1]]){var l=LB[m[1]],v=m[2].trim();all.push({l:l,v:v});if(all.length<=4)sum+='<b>'+es(l)+'</b>：'+es(v)+'<br>'}});
+      lines.forEach(function(line){
+        var m=line.match(/- \*\*(.+?)\*\*[：:](.+)/);
+        if(m&&LB[m[1]]){
+          var l=LB[m[1]],v=m[2].trim();
+          all.push({l:l,v:v});
+          if(all.length<=4) sum+='<b>'+es(l)+'</b>：'+es(v)+'<br>';
+        }
+      });
+      var did='det'+issue.number;
       var more=all.length>4?'<div class=more>📋 点击展开全部 '+all.length+' 项</div>':'';
       var rows=all.map(function(f){return '<tr><td>'+es(f.l)+'</td><td>'+es(f.v)+'</td></tr>'}).join('');
-      html+='<div class=card><h2>'+es(issue.title)+'</h2><div class=meta>'+new Date(issue.created_at).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'})+'</div><div class=sum>'+sum+more+'</div><button onclick=toggleDetail("'+did+'") style=display:inline-block;margin-top:8px;padding:6px 16px;background:#1a1a1a;color:#fff;border:none;font-size:.75rem;cursor:pointer;letter-spacing:1px>查看详情</button><div class=det id='+did+'><table style=width:100%>'+rows+'</table></div></div>';+new Date(issue.created_at).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'})+'</div><div class=sum>'+sum+more+'</div><div class=det><table style=width:100%>'+rows+'</table></div></div>';
+      var dateStr=issue.created_at?new Date(issue.created_at).toLocaleString('zh-CN',{timeZone:'Asia/Shanghai'}):'未知时间';
+      html+='<div class=card onclick=toggleDetail("'+did+'")><h2>'+es(issue.title)+'</h2><div class=meta>'+dateStr+'</div><div class=sum>'+sum+more+'</div><div class=det id='+did+'><table style=width:100%>'+rows+'</table></div></div>';
     });
     document.getElementById('list').innerHTML=html;
   })
-  .catch(function(){document.getElementById('list').innerHTML='<div class=empty><p style=font-size:3rem>⚠️</p><p>网络错误</p><button class=btn onclick=load()>重试</button></div>'});
+  .catch(function(err){
+    console.error(err);
+    document.getElementById('list').innerHTML='<div class=empty><p style=font-size:3rem>⚠️</p><p>网络错误：'+es(err.message)+'</p><button class=btn onclick=load() style=margin-top:12px>重试</button></div>';
+  });
 }
-function toggleDetail(id){var d=document.getElementById(id);if(d)d.style.display=d.style.display==="none"?"block":"none"} function es(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function toggleDetail(id){
+  var d=document.getElementById(id);
+  if(d) d.style.display=d.style.display==='none'?'block':'none';
+}
+
+function es(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 </script></body></html>
